@@ -22,13 +22,13 @@ html, body {
   display: block;
 }
 
-/* タイトル(F) */
+/* タイトル */
 #title-overlay {
   position: fixed;
   top: 40px;
   left: 40px;
   color: #ffffff;
-  pointer-events: none; /* マウス操作の邪魔をしない */
+  pointer-events: none;
   z-index: 10;
 }
 
@@ -41,7 +41,7 @@ html, body {
   max-width: 400px;
 }
 
-/* ローディング画面(E) */
+/* ローディング画面 */
 #loading-overlay {
   position: fixed;
   top: 0;
@@ -65,4 +65,26 @@ html, body {
   color: #ffffff;
   font-size: 1.2rem;
   letter-spacing: 0.05em;
+}
+
+/* クレジット表記(ライセンス表示) */
+#credit-overlay {
+  position: fixed;
+  bottom: 12px;
+  right: 16px;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+  z-index: 10;
+  max-width: 90vw;
+  text-align: right;
+}
+
+#credit-overlay a {
+  color: rgba(255, 255, 255, 0.65);
+  text-decoration: underline;
+}
+
+#credit-overlay a:hover {
+  color: rgba(255, 255, 255, 0.9);
 }
