@@ -2,17 +2,13 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// 中心がグレー、外側が透明になるグラデーション画像をコードで生成する関数
 function createRadialGradientTexture() {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = 512;
   const ctx = canvas.getContext('2d');
 
-  const gradient = ctx.createRadialGradient(
-    256, 256, 0,
-    256, 256, 256
-  );
+  const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
   gradient.addColorStop(0, 'rgba(160, 160, 160, 1)');
   gradient.addColorStop(0.5, 'rgba(120, 120, 120, 0.6)');
   gradient.addColorStop(1, 'rgba(80, 80, 80, 0)');
@@ -51,6 +47,22 @@ document.getElementById('app').appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
+// --- G: 自動回転の設定 ---
+controls.autoRotate = true;
+controls.autoRotateSpeed = 1.0; // 数字を大きくすると回転が速くなる
+
+// ユーザーがマウス操作を始めたら自動回転を止め、操作をやめてしばらくしたら再開する
+let idleTimer = null;
+controls.addEventListener('start', () => {
+  controls.autoRotate = false;
+  if (idleTimer) clearTimeout(idleTimer);
+});
+controls.addEventListener('end', () => {
+  idleTimer = setTimeout(() => {
+    controls.autoRotate = true;
+  }, 3000); // 操作をやめてから3秒後に自動回転を再開
+});
+
 // 5. ライト
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
 scene.add(ambientLight);
@@ -70,7 +82,7 @@ const rimLight = new THREE.DirectionalLight(0xffffff, 1.2);
 rimLight.position.set(0, 5, -10);
 scene.add(rimLight);
 
-// 6. 地面(グラデーションでフェードする円形の地面)
+// 6. 地面
 const groundTexture = createRadialGradientTexture();
 const groundGeometry = new THREE.CircleGeometry(1, 64);
 const groundMaterial = new THREE.MeshStandardMaterial({
@@ -83,6 +95,10 @@ const ground = new THREE.Mesh(groundGeometry, groundMaterial);
 ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
+
+// --- E: ローディング画面の要素を取得 ---
+const loadingOverlay = document.getElementById('loading-overlay');
+const loadingText = document.getElementById('loading-text');
 
 // 7. モデルを読み込む
 const loader = new GLTFLoader();
@@ -98,10 +114,8 @@ loader.load(
 
     const maxDim = Math.max(size.x, size.y, size.z);
 
-    // 地面の大きさをモデルサイズに合わせて調整
     ground.scale.set(maxDim * 0.7, maxDim * 0.7, 1);
 
-    // モデルの位置調整:X・Zは中心、Yは地面より少し浮かせる
     const floatGap = maxDim * 0.04;
     model.position.x -= center.x;
     model.position.z -= center.z;
@@ -121,7 +135,6 @@ loader.load(
     controls.target.set(0, size.y * 0.3, 0);
     controls.update();
 
-    // ライトの影の計算範囲をモデルサイズに合わせて調整
     const shadowRange = maxDim * 1.5;
     keyLight.shadow.camera.left = -shadowRange;
     keyLight.shadow.camera.right = shadowRange;
@@ -131,20 +144,35 @@ loader.load(
     keyLight.shadow.camera.far = shadowRange * 4;
     keyLight.shadow.camera.updateProjectionMatrix();
 
+    // --- E: 読み込み完了したのでローディング画面を隠す ---
+    loadingOverlay.classList.add('hidden');
+
     console.log('モデルの読み込み成功! サイズ:', size);
   },
   (progress) => {
-    console.log(`読み込み中: ${(progress.loaded / progress.total * 100).toFixed(1)}%`);
+    // --- E: 読み込み進捗(%)をローディング画面に反映 ---
+    if (progress.total > 0) {
+      const percent = Math.round((progress.loaded / progress.total) * 100);
+      loadingText.textContent = `Loading... ${percent}%`;
+    }
   },
   (error) => {
     console.error('読み込みエラー:', error);
+    loadingText.textContent = 'モデルの読み込みに失敗しました';
   }
 );
+
+// --- A: ウィンドウリサイズ対応 ---
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix(); // カメラの歪み計算をやり直す
+  renderer.setSize(window.innerWidth, window.innerHeight); // 描画サイズも変更
+});
 
 // 8. アニメーションループ
 function animate() {
   requestAnimationFrame(animate);
-  controls.update();
+  controls.update(); // dampingとautoRotateの両方に必要
   renderer.render(scene, camera);
 }
 animate();

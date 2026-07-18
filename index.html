@@ -4,9 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Millennium Falcon Viewer</title>
+    <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
     <div id="app"></div>
+
+    <!-- タイトル表示(F) -->
+    <div id="title-overlay">
+      <h1>THE MILLENNIUM FALCON</h1>
+    </div>
+
+    <!-- ローディング表示(E) -->
+    <div id="loading-overlay">
+      <div id="loading-text">Loading... 0%</div>
+    </div>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
