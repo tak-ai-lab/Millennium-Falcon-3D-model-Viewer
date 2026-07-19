@@ -96,8 +96,6 @@ scene.add(ground);
 
 // ローディング画面の要素を取得
 const loadingOverlay = document.getElementById('loading-overlay');
-const loadingText = document.getElementById('loading-text');
-loadingText.textContent = 'Loading'; // ★変更:数字なしの固定テキストに(CSSのアニメーションでドットが付く)
 
 // 7. モデルを読み込む
 const loader = new GLTFLoader();
@@ -147,16 +145,10 @@ loader.load(
 
     console.log('モデルの読み込み成功! サイズ:', size);
   },
-  (progress) => {
-    // ★変更: total(全体サイズ)が正しく取得できた場合だけ%表示、できない場合は何もしない(ドットアニメーションのみ表示され続ける)
-    if (progress.total > 0) {
-      const percent = Math.round((progress.loaded / progress.total) * 100);
-      loadingText.textContent = `Loading... ${percent}%`;
-    }
-  },
+  undefined, // ★変更: 進捗コールバックを削除(% 計算・表示は一切行わない)
   (error) => {
     console.error('読み込みエラー:', error);
-    loadingText.textContent = 'モデルの読み込みに失敗しました';
+    document.getElementById('loading-text').textContent = 'モデルの読み込みに失敗しました';
   }
 );
 
