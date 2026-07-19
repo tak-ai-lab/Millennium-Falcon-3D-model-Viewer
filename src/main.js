@@ -47,11 +47,9 @@ document.getElementById('app').appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
-// --- G: 自動回転の設定 ---
 controls.autoRotate = true;
-controls.autoRotateSpeed = 1.0; // 数字を大きくすると回転が速くなる
+controls.autoRotateSpeed = 1.0;
 
-// ユーザーがマウス操作を始めたら自動回転を止め、操作をやめてしばらくしたら再開する
 let idleTimer = null;
 controls.addEventListener('start', () => {
   controls.autoRotate = false;
@@ -60,7 +58,7 @@ controls.addEventListener('start', () => {
 controls.addEventListener('end', () => {
   idleTimer = setTimeout(() => {
     controls.autoRotate = true;
-  }, 3000); // 操作をやめてから3秒後に自動回転を再開
+  }, 3000);
 });
 
 // 5. ライト
@@ -96,9 +94,10 @@ ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
 
-// --- E: ローディング画面の要素を取得 ---
+// ローディング画面の要素を取得
 const loadingOverlay = document.getElementById('loading-overlay');
 const loadingText = document.getElementById('loading-text');
+loadingText.textContent = 'Loading'; // ★変更:数字なしの固定テキストに(CSSのアニメーションでドットが付く)
 
 // 7. モデルを読み込む
 const loader = new GLTFLoader();
@@ -144,13 +143,12 @@ loader.load(
     keyLight.shadow.camera.far = shadowRange * 4;
     keyLight.shadow.camera.updateProjectionMatrix();
 
-    // --- E: 読み込み完了したのでローディング画面を隠す ---
     loadingOverlay.classList.add('hidden');
 
     console.log('モデルの読み込み成功! サイズ:', size);
   },
   (progress) => {
-    // --- E: 読み込み進捗(%)をローディング画面に反映 ---
+    // ★変更: total(全体サイズ)が正しく取得できた場合だけ%表示、できない場合は何もしない(ドットアニメーションのみ表示され続ける)
     if (progress.total > 0) {
       const percent = Math.round((progress.loaded / progress.total) * 100);
       loadingText.textContent = `Loading... ${percent}%`;
@@ -162,17 +160,17 @@ loader.load(
   }
 );
 
-// --- A: ウィンドウリサイズ対応 ---
+// ウィンドウリサイズ対応
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix(); // カメラの歪み計算をやり直す
-  renderer.setSize(window.innerWidth, window.innerHeight); // 描画サイズも変更
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
 // 8. アニメーションループ
 function animate() {
   requestAnimationFrame(animate);
-  controls.update(); // dampingとautoRotateの両方に必要
+  controls.update();
   renderer.render(scene, camera);
 }
 animate();
